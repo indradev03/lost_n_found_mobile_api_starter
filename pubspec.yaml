@@ -18,7 +18,7 @@ dependencies:
 
   # State Management
   flutter_riverpod: ^3.0.3
-  riverpod_annotation: ^3.0.3
+  riverpod_annotation: ^4.0.2
 
   # Local Database (Offline Storage)
   hive: ^2.2.3
@@ -37,7 +37,7 @@ dependencies:
   shared_preferences: ^2.5.4
   jwt_decoder: ^2.0.1
   google_sign_in: ^7.2.0
-  sign_in_with_apple: ^7.0.1
+  sign_in_with_apple: ^8.1.0
 
   # Media Handling
   flutter_image_compress: ^2.2.0
