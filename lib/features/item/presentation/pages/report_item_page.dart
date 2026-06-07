@@ -1,5 +1,10 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
+import 'package:flutter_image_compress/flutter_image_compress.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:permission_handler/permission_handler.dart';
 import '../../../../app/theme/app_colors.dart';
 import '../../../../app/theme/theme_extensions.dart';
 import '../../../../core/services/storage/user_session_service.dart';
@@ -59,7 +64,9 @@ class _ReportItemPageState extends ConsumerState<ReportItemPage> {
       final userSessionService = ref.read(userSessionServiceProvider);
       final userId = userSessionService.getCurrentUserId();
 
-      await ref.read(itemViewModelProvider.notifier).createItem(
+      await ref
+          .read(itemViewModelProvider.notifier)
+          .createItem(
             itemName: _titleController.text.trim(),
             description: _descriptionController.text.trim().isEmpty
                 ? null
@@ -74,6 +81,149 @@ class _ReportItemPageState extends ConsumerState<ReportItemPage> {
 
   IconData _getIconForCategory(String categoryName) {
     return _categoryIcons[categoryName] ?? Icons.category_rounded;
+  }
+
+  // hhhhhhhhhhhhhhhh
+  final List<XFile> _selectedMedia = []; // images and videos
+  final ImagePicker _imagePicker = ImagePicker();
+
+  Future<bool> _userSangaPermissionMagu(Permission permission) async {
+    final status = await permission.status;
+
+    if (status.isGranted) {
+      return true;
+    }
+
+    if (status.isDenied) {
+      final result = await permission.request();
+      return result.isGranted;
+    }
+
+    if (status.isPermanentlyDenied) {
+      _showPermissionDialog();
+      return false;
+    }
+    return false;
+  }
+
+  void _showPermissionDialog() {
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: Text('Permission Required'),
+          content: Text(
+            'Please grant permission to access your photos and videos.',
+          ),
+          actions: [
+            TextButton(onPressed: () {}, child: Text('Cancel')),
+            ElevatedButton(onPressed: () {}, child: Text('Settings')),
+          ],
+        );
+      },
+    );
+  }
+
+  /// Camera
+  Future<void> _pickFromCamera() async {
+    final hasPermission = await _userSangaPermissionMagu(Permission.camera);
+
+    if (!hasPermission) return;
+
+    final XFile? photo = await _imagePicker.pickImage(
+      source: ImageSource.camera,
+      imageQuality: 80,
+    );
+
+    if (photo != null) {
+      setState(() {
+        _selectedMedia
+            .clear(); // if user le arko photo select garxa vanye pura lai remove garxa
+        _selectedMedia.add(photo);
+      });
+    }
+  }
+
+  /// Gallery (multiple images)
+  Future<void> _pickImagesFromGallery() async {
+    final hasPermission = await _userSangaPermissionMagu(Permission.photos);
+
+    if (!hasPermission) return;
+
+    final List<XFile> images = await _imagePicker.pickMultiImage(
+      imageQuality: 80,
+    );
+
+    if (images.isNotEmpty) {
+      setState(() {
+        _selectedMedia.addAll(images);
+      });
+    }
+  }
+
+  /// Video
+  Future<void> _recordVideo() async {
+    try {
+      final hasPermission = await _userSangaPermissionMagu(Permission.camera);
+
+      if (!hasPermission) return;
+
+      final XFile? video = await _imagePicker.pickVideo(
+        source: ImageSource.camera,
+        maxDuration: const Duration(minutes: 2),
+      );
+
+      if (video != null) {
+        setState(() {
+          _selectedMedia.add(video);
+        });
+      }
+    } catch (e) {
+      debugPrint('Error recording video: $e');
+    }
+  }
+
+  Future<void> _showMediaPickerDialog() async {
+    await showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.white,
+      builder: (context) {
+        return SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                ListTile(
+                  leading: const Icon(Icons.camera_alt),
+                  title: const Text('Open Camera'),
+                  onTap: () {
+                    Navigator.pop(context);
+                    _pickFromCamera();
+                  },
+                ),
+                ListTile(
+                  leading: const Icon(Icons.photo_library),
+                  title: const Text('Open Gallery'),
+                  onTap: () {
+                    Navigator.pop(context);
+                    _pickImagesFromGallery();
+                  },
+                ),
+                ListTile(
+                  leading: const Icon(Icons.video_library),
+                  title: const Text('Record Video'),
+                  onTap: () {
+                    Navigator.pop(context);
+                    _recordVideo();
+                  },
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
   }
 
   @override
@@ -170,8 +320,9 @@ class _ReportItemPageState extends ConsumerState<ReportItemPage> {
                                 },
                                 child: AnimatedContainer(
                                   duration: const Duration(milliseconds: 200),
-                                  padding:
-                                      const EdgeInsets.symmetric(vertical: 16),
+                                  padding: const EdgeInsets.symmetric(
+                                    vertical: 16,
+                                  ),
                                   decoration: BoxDecoration(
                                     gradient: _selectedType == ItemType.lost
                                         ? AppColors.lostGradient
@@ -213,8 +364,9 @@ class _ReportItemPageState extends ConsumerState<ReportItemPage> {
                                 },
                                 child: AnimatedContainer(
                                   duration: const Duration(milliseconds: 200),
-                                  padding:
-                                      const EdgeInsets.symmetric(vertical: 16),
+                                  padding: const EdgeInsets.symmetric(
+                                    vertical: 16,
+                                  ),
                                   decoration: BoxDecoration(
                                     gradient: _selectedType == ItemType.found
                                         ? AppColors.foundGradient
@@ -264,12 +416,11 @@ class _ReportItemPageState extends ConsumerState<ReportItemPage> {
                       ),
                       const SizedBox(height: 12),
                       Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          // Add Photo Button
+                          // FIXED ADD BUTTON
                           GestureDetector(
-                            onTap: () {
-                              // TODO: Implement image picker
-                            },
+                            onTap: _showMediaPickerDialog,
                             child: Container(
                               width: 100,
                               height: 100,
@@ -279,37 +430,62 @@ class _ReportItemPageState extends ConsumerState<ReportItemPage> {
                                 border: Border.all(
                                   color: context.borderColor,
                                   width: 2,
-                                  style: BorderStyle.solid,
                                 ),
                               ),
-                              child: Column(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  Container(
-                                    width: 40,
-                                    height: 40,
-                                    decoration: BoxDecoration(
-                                      gradient: _selectedType == ItemType.lost
-                                          ? AppColors.lostGradient
-                                          : AppColors.foundGradient,
-                                      borderRadius: BorderRadius.circular(10),
-                                    ),
-                                    child: Icon(
-                                      Icons.add_a_photo_rounded,
-                                      color: Colors.white,
-                                      size: 20,
-                                    ),
-                                  ),
-                                  const SizedBox(height: 8),
-                                  Text(
-                                    'Add Photo / Video',
-                                    style: TextStyle(
-                                      fontSize: 11,
-                                      color: context.textSecondary,
-                                      fontWeight: FontWeight.w500,
-                                    ),
-                                  ),
-                                ],
+                              child: const Icon(Icons.add_a_photo),
+                            ),
+                          ),
+
+                          const SizedBox(width: 12),
+
+                          // SCROLLABLE IMAGES
+                          Expanded(
+                            child: SizedBox(
+                              height: 100, // IMPORTANT
+                              child: SingleChildScrollView(
+                                scrollDirection: Axis.horizontal,
+                                child: Row(
+                                  children: _selectedMedia.map((file) {
+                                    return Padding(
+                                      padding: const EdgeInsets.only(right: 8),
+                                      child: Stack(
+                                        children: [
+                                          ClipRRect(
+                                            borderRadius: BorderRadius.circular(
+                                              12,
+                                            ),
+                                            child: Image.file(
+                                              File(file.path),
+                                              width: 100,
+                                              height: 100,
+                                              fit: BoxFit.cover,
+                                            ),
+                                          ),
+
+                                          Positioned(
+                                            right: 0,
+                                            child: GestureDetector(
+                                              onTap: () {
+                                                setState(() {
+                                                  _selectedMedia.remove(file);
+                                                });
+                                              },
+                                              child: const CircleAvatar(
+                                                radius: 12,
+                                                backgroundColor: Colors.red,
+                                                child: Icon(
+                                                  Icons.close,
+                                                  size: 14,
+                                                  color: Colors.white,
+                                                ),
+                                              ),
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    );
+                                  }).toList(),
+                                ),
                               ),
                             ),
                           ),
@@ -391,8 +567,7 @@ class _ReportItemPageState extends ConsumerState<ReportItemPage> {
                             hintText: _selectedType == ItemType.lost
                                 ? 'Where did you lose it?'
                                 : 'Where did you find it?',
-                            hintStyle:
-                                TextStyle(color: context.textTertiary),
+                            hintStyle: TextStyle(color: context.textTertiary),
                             prefixIcon: Icon(
                               Icons.location_on_rounded,
                               color: context.textSecondary,
@@ -540,15 +715,12 @@ class _ReportItemPageState extends ConsumerState<ReportItemPage> {
           },
           child: AnimatedContainer(
             duration: const Duration(milliseconds: 200),
-            padding: const EdgeInsets.symmetric(
-              horizontal: 16,
-              vertical: 12,
-            ),
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
             decoration: BoxDecoration(
               gradient: isSelected
                   ? (_selectedType == ItemType.lost
-                      ? AppColors.lostGradient
-                      : AppColors.foundGradient)
+                        ? AppColors.lostGradient
+                        : AppColors.foundGradient)
                   : null,
               color: isSelected ? null : context.surfaceColor,
               borderRadius: BorderRadius.circular(12),
