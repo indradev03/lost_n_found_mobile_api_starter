@@ -23,7 +23,7 @@ class ApiEndpoints {
   // =========== Student Endpoints ===========
   static const String students = '/students';
   static const String studentLogin = '/students/login';
-  static const String studentRegister = '/students/register';
+  // static const String studentRegister = '/students/register';
   static String studentById(String id) => '/students/$id';
   static String studentPhoto(String id) => '/students/$id/photo';
 
