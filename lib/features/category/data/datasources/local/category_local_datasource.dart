@@ -3,17 +3,19 @@ import 'package:lost_n_found/core/services/hive/hive_service.dart';
 import 'package:lost_n_found/features/category/data/datasources/category_datasource.dart';
 import 'package:lost_n_found/features/category/data/models/category_hive_model.dart';
 
-final categoryLocalDatasourceProvider =
-    Provider<CategoryLocalDatasource>((ref) {
+final categoryLocalDatasourceProvider = Provider<ICategoryLocalDataSource>((
+  ref,
+) {
   final hiveService = ref.read(hiveServiceProvider);
+
   return CategoryLocalDatasource(hiveService: hiveService);
 });
 
-class CategoryLocalDatasource implements ICategoryDataSource {
+class CategoryLocalDatasource implements ICategoryLocalDataSource {
   final HiveService _hiveService;
 
   CategoryLocalDatasource({required HiveService hiveService})
-      : _hiveService = hiveService;
+    : _hiveService = hiveService;
 
   @override
   Future<bool> createCategory(CategoryHiveModel category) async {
@@ -38,6 +40,7 @@ class CategoryLocalDatasource implements ICategoryDataSource {
   @override
   Future<List<CategoryHiveModel>> getAllCategories() async {
     try {
+      // NO await here (Hive returns List, not Future)
       return _hiveService.getAllCategories();
     } catch (e) {
       return [];
@@ -47,6 +50,7 @@ class CategoryLocalDatasource implements ICategoryDataSource {
   @override
   Future<CategoryHiveModel?> getCategoryById(String categoryId) async {
     try {
+      //NO await here (Hive returns direct object)
       return _hiveService.getCategoryById(categoryId);
     } catch (e) {
       return null;
