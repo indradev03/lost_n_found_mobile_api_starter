@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:lost_n_found/features/item/domain/entities/item_entity.dart';
 import 'package:lost_n_found/features/item/domain/usecases/create_item_usecase.dart';
@@ -6,6 +8,8 @@ import 'package:lost_n_found/features/item/domain/usecases/get_all_items_usecase
 import 'package:lost_n_found/features/item/domain/usecases/get_item_by_id_usecase.dart';
 import 'package:lost_n_found/features/item/domain/usecases/get_items_by_user_usecase.dart';
 import 'package:lost_n_found/features/item/domain/usecases/update_item_usecase.dart';
+import 'package:lost_n_found/features/item/domain/usecases/upload_photo_usecase.dart';
+import 'package:lost_n_found/features/item/domain/usecases/upload_video.usecase.dart';
 import 'package:lost_n_found/features/item/presentation/state/item_state.dart';
 
 final itemViewModelProvider = NotifierProvider<ItemViewModel, ItemState>(
@@ -19,6 +23,8 @@ class ItemViewModel extends Notifier<ItemState> {
   late final CreateItemUsecase _createItemUsecase;
   late final UpdateItemUsecase _updateItemUsecase;
   late final DeleteItemUsecase _deleteItemUsecase;
+  late final UploadPhotoUsecase _uploadPhotoUsecase;
+  late final UploadVideoUsecase _uploadVideoUsecase;
 
   @override
   ItemState build() {
@@ -28,6 +34,8 @@ class ItemViewModel extends Notifier<ItemState> {
     _createItemUsecase = ref.read(createItemUsecaseProvider);
     _updateItemUsecase = ref.read(updateItemUsecaseProvider);
     _deleteItemUsecase = ref.read(deleteItemUsecaseProvider);
+    _uploadPhotoUsecase = ref.read(uploadPhotoUsecaseProvider);
+    _uploadVideoUsecase = ref.read(uploadVideoUsecaseProvider);
     return const ItemState();
   }
 
@@ -199,7 +207,47 @@ class ItemViewModel extends Notifier<ItemState> {
   }
 
   // upload photo
-  Future
+  Future<void> uploadPhoto(File photo) async {
+    state = state.copyWith(status: ItemStatus.loading);
+
+    final result = await _uploadPhotoUsecase(photo);
+    result.fold(
+      (failure) {
+        state = state.copyWith(
+          status: ItemStatus.error,
+          errorMessage: failure.message,
+        );
+      },
+      (imageName) {
+        state = state.copyWith(
+          status: ItemStatus.loaded,
+          uploadPhotoName: imageName,
+        );
+      },
+    );
+  }
+
+  // video
+  Future<void> uploadVideo(File video) async {
+    state = state.copyWith(status: ItemStatus.loading);
+
+    final result = await _uploadVideoUsecase(video);
+
+    result.fold(
+      (failure) {
+        state = state.copyWith(
+          status: ItemStatus.error,
+          errorMessage: failure.message,
+        );
+      },
+      (videoName) {
+        state = state.copyWith(
+          status: ItemStatus.loaded,
+          uploadVideoName: videoName,
+        );
+      },
+    );
+  }
 
   void clearError() {
     state = state.copyWith(errorMessage: null);

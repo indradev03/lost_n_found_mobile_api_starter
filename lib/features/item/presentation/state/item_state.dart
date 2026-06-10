@@ -16,6 +16,9 @@ class ItemState extends Equatable {
   // store image name temp
   final String? uploadPhotoName;
 
+  // store video name
+  final String? uploadVideoName;
+
   const ItemState({
     this.status = ItemStatus.initial,
     this.items = const [],
@@ -26,6 +29,7 @@ class ItemState extends Equatable {
     this.selectedItem,
     this.errorMessage,
     this.uploadPhotoName,
+    this.uploadVideoName,
   });
 
   ItemState copyWith({
@@ -38,6 +42,7 @@ class ItemState extends Equatable {
     ItemEntity? selectedItem,
     String? errorMessage,
     String? uploadPhotoName,
+    String? uploadVideoName,
   }) {
     return ItemState(
       status: status ?? this.status,
@@ -49,6 +54,7 @@ class ItemState extends Equatable {
       selectedItem: selectedItem ?? this.selectedItem,
       errorMessage: errorMessage ?? this.errorMessage,
       uploadPhotoName: uploadPhotoName ?? this.uploadPhotoName,
+      uploadVideoName: uploadVideoName ?? this.uploadVideoName,
     );
   }
 
@@ -63,5 +69,6 @@ class ItemState extends Equatable {
     selectedItem,
     errorMessage,
     uploadPhotoName,
+    uploadVideoName,
   ];
 }

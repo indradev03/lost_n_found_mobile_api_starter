@@ -29,7 +29,7 @@ class ItemRemoteDatasource implements IItemRemoteDatasource {
     // c:asd/asd/a.jpg
     final fileName = image.path.split('/').last;
     final formData = FormData.fromMap({
-      'itemPhoto': MultipartFile.fromFileSync(image.path, filename: fileName),
+      'itemPhoto': await MultipartFile.fromFile(image.path, filename: fileName),
     });
 
     // get token from token service
@@ -39,11 +39,11 @@ class ItemRemoteDatasource implements IItemRemoteDatasource {
       formData: formData,
       options: Options(headers: {'Authorization': 'Bearer $token'}),
     );
-    return response.data['success'];
+    return response.data['data'];
   }
 
   @override
-  Future<String> uplaodVideo(File video) async {
+  Future<String> uploadVideo(File video) async {
     final fileName = video.path.split('/').last;
     final formData = FormData.fromMap({
       'itemVideo': MultipartFile.fromFileSync(video.path, filename: fileName),
@@ -56,6 +56,6 @@ class ItemRemoteDatasource implements IItemRemoteDatasource {
       formData: formData,
       options: Options(headers: {'Authorization': 'Bearer $token'}),
     );
-    return response.data['success'];
+    return response.data['data'];
   }
 }

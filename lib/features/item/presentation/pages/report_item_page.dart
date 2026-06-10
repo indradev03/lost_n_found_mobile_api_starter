@@ -141,6 +141,11 @@ class _ReportItemPageState extends ConsumerState<ReportItemPage> {
             .clear(); // if user le arko photo select garxa vanye pura lai remove garxa
         _selectedMedia.add(photo);
       });
+
+      // upload image to server
+      await ref
+          .read(itemViewModelProvider.notifier)
+          .uploadPhoto(File(photo.path));
     }
   }
 
@@ -158,6 +163,12 @@ class _ReportItemPageState extends ConsumerState<ReportItemPage> {
       setState(() {
         _selectedMedia.addAll(images);
       });
+      // upload image to server
+      for (final image in images) {
+        await ref
+            .read(itemViewModelProvider.notifier)
+            .uploadPhoto(File(image.path));
+      }
     }
   }
 
