@@ -198,6 +198,9 @@ class ItemViewModel extends Notifier<ItemState> {
     );
   }
 
+  // upload photo
+  Future
+
   void clearError() {
     state = state.copyWith(errorMessage: null);
   }

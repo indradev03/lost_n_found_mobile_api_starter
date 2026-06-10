@@ -13,6 +13,9 @@ class ItemState extends Equatable {
   final ItemEntity? selectedItem;
   final String? errorMessage;
 
+  // store image name temp
+  final String? uploadPhotoName;
+
   const ItemState({
     this.status = ItemStatus.initial,
     this.items = const [],
@@ -22,6 +25,7 @@ class ItemState extends Equatable {
     this.myFoundItems = const [],
     this.selectedItem,
     this.errorMessage,
+    this.uploadPhotoName,
   });
 
   ItemState copyWith({
@@ -33,6 +37,7 @@ class ItemState extends Equatable {
     List<ItemEntity>? myFoundItems,
     ItemEntity? selectedItem,
     String? errorMessage,
+    String? uploadPhotoName,
   }) {
     return ItemState(
       status: status ?? this.status,
@@ -43,9 +48,20 @@ class ItemState extends Equatable {
       myFoundItems: myFoundItems ?? this.myFoundItems,
       selectedItem: selectedItem ?? this.selectedItem,
       errorMessage: errorMessage ?? this.errorMessage,
+      uploadPhotoName: uploadPhotoName ?? this.uploadPhotoName,
     );
   }
 
   @override
-  List<Object?> get props => [status, items, lostItems, foundItems, myLostItems, myFoundItems, selectedItem, errorMessage];
+  List<Object?> get props => [
+    status,
+    items,
+    lostItems,
+    foundItems,
+    myLostItems,
+    myFoundItems,
+    selectedItem,
+    errorMessage,
+    uploadPhotoName,
+  ];
 }
